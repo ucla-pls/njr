@@ -1,0 +1,50 @@
+
+Getting started:
+
+Mac OS X installed home-brew
+
+brew install python3
+mkdir virtualenv
+python3 -m venv ./virtualenv  
+source ./virtualenv/bin/activate
+pip install Django 
+django-admin startproject njr
+python manage.py runserver 
+python manage.py migrate
+python manage.py inspectdb > app/models.py
+
+
+Install mongodb
+https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+
+mongod
+mongo --host 127.0.0.1:27017
+
+VSCODE start virual env
+Cmd P
+>python: select virtual env
+
+superuser
+admin
+avahid@g.ucla.edu
+supersecretpassword
+
+
+Questions:
+
+Which columns should be not null
+Subfolder table?
+Are stats unique to build id (should they be consolidated)
+Why was "visited" not in the model?
+Duplicate class names? What about main class in benchmark?
+URL source vs Git Source? RepoSourceDocument rev field?
+
+Analysis Result and Benchmark are 1 to 1 (154128)
+Project, Repo, and Repo_Source are 1 to 1 (49998)
+
+
+More questions:
+
+this summer?
+how to get nix working
+vagrant file?

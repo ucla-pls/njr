@@ -1,0 +1,32 @@
+<table style="font-size: 10;">
+    <thead>
+        <tr>
+            <th>name</th>
+            <th>analysis</th> 
+            <th>benchmark_id</th> 
+            <th>visited</th> 
+            <th>world</th> 
+            <th>upper</th> 
+            <th>path</th> 
+            <th>lower</th> 
+            <th>stats_id</th> 
+            <th>difference</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for obj in example %}
+        <tr>
+            <td>{{obj.name}}</td>
+            <td>{{obj.analysis}}</td> 
+            <td>{{obj.benchmark_id}}</td> 
+            <td>{{obj.visited}}</td> 
+            <td>{{obj.world}}</td> 
+            <td>{{obj.upper}}</td> 
+            <td>{{obj.path}}</td> 
+            <td>{{obj.lower}}</td> 
+            <td>{{obj.stats_id}}</td> 
+            <td>{{obj.difference}}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

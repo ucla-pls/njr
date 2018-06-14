@@ -1,0 +1,100 @@
+MongoDB shell version: 3.2.9
+connecting to: njr-test
+> show collections
+analysis_result_document
+benchmark_document
+project_document
+repo_document
+repo_source_document
+> db.repo_source_document.findOne()
+{
+        "_id" : ObjectId("59ec2add0552bce43b118e2f"),
+        "_cls" : "RepoSourceDocument.UrlSourceDocument",
+        "name" : "url1883987a33_juananthony_SumoBusRouteGenerator_tgz",
+        "visited" : ISODate("2017-10-22T05:21:28.602Z"),
+        "url" : "http://bora.cs.ucla.edu/repos/84/juananthony-SumoBusRouteGenerator.tgz"
+}
+> db.repo_document.findOne()
+{
+        "_id" : ObjectId("59ec2add0552bce43b118e30"),
+        "name" : "url1883987a33_juananthony_SumoBusRouteGenerator_tgz",
+        "subfolders" : [
+                ""
+        ],
+        "repo_source" : ObjectId("59ec2add0552bce43b118e2f"),
+        "visited" : ISODate("2017-12-05T22:10:32.191Z"),
+        "sha256" : "00jwnkhgynkvpxf32436w2hq57lyxjkpcyy5h9rdi5qpjcbyx2a8",
+        "path" : "/nix/store/9xhrl2radb0iixkk4ivi3nr010s16x7j-url1883987a33_juananthony_SumoBusRouteGenerator_tgz.tgz",
+        "stats" : {
+                "buildid" : "107b4",
+                "timing" : 0.3698746799491346
+        }
+}
+> db.project_document.findOne()
+{
+        "_id" : ObjectId("59ec2dc00552bce52f4d65c6"),
+        "name" : "urlf057de3ec2_walker7734_DistributedAveraging_tgz-pJ8",
+        "subfolder" : "",
+        "javaversion" : 8,
+        "classes" : [
+                "CPDataInstance",
+                "CPDataSet",
+                "CPWeights",
+                "DataInstance",
+                "DataSet",
+                "DistributedAveraging",
+                "DistributedAveraging$1",
+                "DistributedMain",
+                "HogwildDataInstance",
+                "HogwildDataSet",
+                "ReportResults",
+                "SGD",
+                "util.EvalUtil",
+                "util.HashUtil",
+                "util.StringUtil"
+        ],
+        "mainclasses" : [
+                "DistributedMain"
+        ],
+        "repo" : ObjectId("59ec2add0552bce43b118e34"),
+        "visited" : ISODate("2017-12-05T22:10:32.191Z"),
+        "sha256" : "18sbh85c0jc3207knbcnd8fkab6sd2hbj5md60h7dc4fix3s8115",
+        "path" : "/nix/store/wp02lrsgr1ssakswczdb96kcdr49f3j2-urlf057de3ec2_walker7734_DistributedAveraging_tgz-pJ8",
+        "buildwith" : "ant",
+        "stats" : {
+                "buildid" : "a3e73",
+                "timing" : 0.49959775689058006
+        }
+}
+> db.benchmark_document.findOne()
+{
+        "_id" : ObjectId("59ec301d0552bc44803ab4b6"),
+        "name" : "urlc1088eac27_palmerlarsen_BeginningGui_tgz-pJ8-beginning_Controller_GUIRunner",
+        "mainclass" : "beginning.Controller.GUIRunner",
+        "inputs" : [
+                {
+                        "name" : "empty",
+                        "args" : [ ],
+                        "stdin" : ""
+                }
+        ],
+        "project" : ObjectId("59ec2dd80552bce76cf448a3"),
+        "visited" : ISODate("2017-10-22T05:43:26.185Z")
+}
+> db.analysis_result_document.findOne()
+{
+        "_id" : ObjectId("59ec30220552bc44803ab4bb"),
+        "name" : "urlc1088eac27_palmerlarsen_BeginningGui_tgz-pJ8-beginning_Controller_GUIRunner-reachable_methods_comp",
+        "analysis" : "reachable-methods.comp",
+        "benchmark" : ObjectId("59ec301d0552bc44803ab4b6"),
+        "visited" : ISODate("2017-12-05T22:10:32.191Z"),
+        "world" : 14,
+        "upper" : 8,
+        "path" : "/nix/store/5kzgscaxxp0166sj4y4ki2irrkzdlnnf-library-reachable-method+urlc1088eac27_palmerlarsen_BeginningGui_tgz-pJ8-beginning_Controller_GUIRunnerJ8",
+        "lower" : 4,
+        "stats" : {
+                "buildid" : "3b4b7",
+                "timing" : 0.5824619680643082
+        },
+        "difference" : 0
+}

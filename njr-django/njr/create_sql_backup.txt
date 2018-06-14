@@ -1,0 +1,228 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema njr
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema njr
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `njr` DEFAULT CHARACTER SET utf8 ;
+USE `njr` ;
+
+-- -----------------------------------------------------
+-- Table `njr`.`class`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`class` (
+  `class_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  PRIMARY KEY (`class_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 2094105
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`repo_source`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`repo_source` (
+  `repo_source_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `_cls` VARCHAR(255) NULL DEFAULT NULL,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `visited` VARCHAR(255) NULL DEFAULT NULL,
+  `url` VARCHAR(255) NULL DEFAULT NULL,
+  `rev` VARCHAR(255) NULL DEFAULT NULL,
+  `mongo_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`repo_source_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 49999
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`stats`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`stats` (
+  `stats_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `buildid` VARCHAR(255) NULL DEFAULT NULL,
+  `timing` DECIMAL(32,16) NULL DEFAULT NULL,
+  PRIMARY KEY (`stats_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 388275
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`repo`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`repo` (
+  `repo_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `repo_source_id` INT(11) NULL DEFAULT NULL,
+  `visited` DATETIME NULL DEFAULT NULL,
+  `sha256` VARCHAR(255) NULL DEFAULT NULL,
+  `path` VARCHAR(255) NULL DEFAULT NULL,
+  `stats_id` INT(11) NULL DEFAULT NULL,
+  `mongo_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`repo_id`),
+  INDEX `fk_repo_source_idx` (`repo_source_id` ASC),
+  INDEX `fk_stats_idx` (`stats_id` ASC),
+  CONSTRAINT `fk_repo_repo_source`
+    FOREIGN KEY (`repo_source_id`)
+    REFERENCES `njr`.`repo_source` (`repo_source_id`),
+  CONSTRAINT `fk_repo_stats`
+    FOREIGN KEY (`stats_id`)
+    REFERENCES `njr`.`stats` (`stats_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 49999
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`project`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`project` (
+  `project_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `subfolder` VARCHAR(255) NULL DEFAULT NULL,
+  `javaversion` VARCHAR(255) NULL DEFAULT NULL,
+  `repo_id` INT(11) NULL DEFAULT NULL,
+  `visited` DATETIME NULL DEFAULT NULL,
+  `sha256` VARCHAR(255) NULL DEFAULT NULL,
+  `path` VARCHAR(255) NULL DEFAULT NULL,
+  `buildwith` VARCHAR(255) NULL DEFAULT NULL,
+  `stats_id` INT(11) NULL DEFAULT NULL,
+  `mongo_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`project_id`),
+  INDEX `fk_repo_idx` (`repo_id` ASC),
+  INDEX `fk_stats_idx` (`stats_id` ASC),
+  CONSTRAINT `fk_project_repo`
+    FOREIGN KEY (`repo_id`)
+    REFERENCES `njr`.`repo` (`repo_id`),
+  CONSTRAINT `fk_project_stats`
+    FOREIGN KEY (`stats_id`)
+    REFERENCES `njr`.`stats` (`stats_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 49999
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`benchmark`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`benchmark` (
+  `benchmark_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `mainclass_id` INT(11) NULL DEFAULT NULL,
+  `project_id` INT(11) NULL DEFAULT NULL,
+  `visited` DATETIME NULL DEFAULT NULL,
+  `mongo_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`benchmark_id`),
+  INDEX `fk_benchmark_project_idx` (`project_id` ASC),
+  INDEX `fk_benchmark_class_idx` (`mainclass_id` ASC),
+  CONSTRAINT `fk_benchmark_class`
+    FOREIGN KEY (`mainclass_id`)
+    REFERENCES `njr`.`class` (`class_id`),
+  CONSTRAINT `fk_benchmark_project`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `njr`.`project` (`project_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 154129
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`analysis_result`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`analysis_result` (
+  `analysis_result_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `analysis` VARCHAR(255) NULL DEFAULT NULL,
+  `benchmark_id` INT(11) NULL DEFAULT NULL,
+  `visited` DATETIME NULL DEFAULT NULL,
+  `world` INT(11) NULL DEFAULT NULL,
+  `upper` INT(11) NULL DEFAULT NULL,
+  `path` TEXT NULL DEFAULT NULL,
+  `lower` INT(11) NULL DEFAULT NULL,
+  `stats_id` INT(11) NULL DEFAULT NULL,
+  `difference` INT(11) NULL DEFAULT NULL,
+  `mongo_id` VARCHAR(45) NULL DEFAULT NULL,
+  PRIMARY KEY (`analysis_result_id`),
+  INDEX `fk_analysis_result_benchmark_idx` (`benchmark_id` ASC),
+  INDEX `fk_analysis_result_stats_idx` (`stats_id` ASC),
+  CONSTRAINT `fk_analysis_result_benchmark`
+    FOREIGN KEY (`benchmark_id`)
+    REFERENCES `njr`.`benchmark` (`benchmark_id`),
+  CONSTRAINT `fk_analysis_result_stats`
+    FOREIGN KEY (`stats_id`)
+    REFERENCES `njr`.`stats` (`stats_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 152479
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`input`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`input` (
+  `input_id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(255) NULL DEFAULT NULL,
+  `args` VARCHAR(255) NULL DEFAULT NULL,
+  `stdin` VARCHAR(255) NULL DEFAULT NULL,
+  `benchmark_id` INT(11) NULL DEFAULT NULL,
+  PRIMARY KEY (`input_id`),
+  INDEX `fk_input_benchmark_idx` (`benchmark_id` ASC),
+  CONSTRAINT `fk_input_benchmark`
+    FOREIGN KEY (`benchmark_id`)
+    REFERENCES `njr`.`benchmark` (`benchmark_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 286729
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`project_class`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`project_class` (
+  `project_id` INT(11) NOT NULL,
+  `class_id` INT(11) NOT NULL,
+  PRIMARY KEY (`project_id`, `class_id`),
+  INDEX `fk_project_class_class_idx` (`class_id` ASC),
+  CONSTRAINT `fk_project_class_class`
+    FOREIGN KEY (`class_id`)
+    REFERENCES `njr`.`class` (`class_id`),
+  CONSTRAINT `fk_project_class_project`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `njr`.`project` (`project_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `njr`.`project_mainclass`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `njr`.`project_mainclass` (
+  `project_id` INT(11) NOT NULL,
+  `class_id` INT(11) NOT NULL,
+  PRIMARY KEY (`project_id`, `class_id`),
+  INDEX `fk_project_mainclass_mainclass_idx` (`class_id` ASC),
+  CONSTRAINT `fk_project_mainclass_mainclass`
+    FOREIGN KEY (`class_id`)
+    REFERENCES `njr`.`class` (`class_id`),
+  CONSTRAINT `fk_project_mainclass_project`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `njr`.`project` (`project_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

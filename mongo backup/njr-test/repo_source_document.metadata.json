@@ -1,0 +1,1 @@
+{"options":{},"indexes":[{"v":1,"key":{"_id":1},"name":"_id_","ns":"njr-test.repo_source_document"},{"v":1,"unique":true,"key":{"name":1},"name":"name_1","ns":"njr-test.repo_source_document","sparse":false,"background":false},{"v":1,"key":{"_cls":1},"name":"_cls_1","ns":"njr-test.repo_source_document","background":false}]}
