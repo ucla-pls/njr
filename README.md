@@ -18,8 +18,10 @@ python manage.py runserver
 go to http://127.0.0.1:8000/
 
 most interesting code in:
+```
 /njr-django/app/views.py
 /njr-django/njr/import_mongo_v2.py
+```
 
 To simulate jobs
 
