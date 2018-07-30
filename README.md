@@ -1,4 +1,4 @@
-#SETUP
+# SETUP
 
 After downloading git repo...
 
@@ -9,9 +9,11 @@ In MySQL Workbench --> server --> Data Import... Choose folder 'mysql dump'
 
 In terminal from root dir...
 
+```
 >> source virtualenv/virtualenv/bin/activate 
 >> cd njr-django
 >> python manage.py runserver 
+```
 
 go to http://127.0.0.1:8000/
 
@@ -23,13 +25,15 @@ To simulate jobs
 
 In terminal from root dir...
 
+```
 >> cd vagrant-client
 >> vagrant up
 >> vagrant ssh
 >> cd /vagrant_data
 >> source client.sh
+```
 
 client.sh is a shell script that first deletes all existing jobs, then makes 10 jobs that contain nix scripts to print a random string. It then builds the scripts and marks the jobs as complete on the server side. When all jobs are complete it stops. 
 
-#TODOS
+# TODOS
 nix-copy-closure isn't working
