@@ -4,7 +4,7 @@
         name = "example";
             phases = "installPhase";
             installPhase = ''
-            echo "94207181c62f47abbcff2318f23e4aa2";
+            echo "Random String: b3c99180ea464e3298be12e9bb00cb9b";
             mkdir $out
             touch $out/hello
             '';

@@ -8,7 +8,9 @@ from rest_framework.test import APIClient
 import json
 import subprocess
 
-#executes a command as if it were in the shell
+"""
+Executes a command as if it were in the shell
+"""
 def run_cmd(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = process.communicate()
@@ -16,6 +18,9 @@ def run_cmd(command):
     err = err.decode("utf-8") 
     return out, err
 
+"""
+Make a dummy job that prints a random string
+"""
 def make_dummy_job():
     job = Job(
         complete = False,
@@ -29,7 +34,7 @@ def make_dummy_job():
         name = "example";
             phases = "installPhase";
             installPhase = ''
-            echo \"""" + uuid.uuid4().hex + """\";
+            echo "Random String: """ + uuid.uuid4().hex + """\";
             mkdir $out
             touch $out/hello
             '';
@@ -38,6 +43,9 @@ def make_dummy_job():
     )
     job.save()
 
+"""
+URL to delete all jobs
+"""
 def delete_dummy_jobs(request):
     Job.objects.all().delete()
 
@@ -47,6 +55,9 @@ def delete_dummy_jobs(request):
     obj['message'] = 'success'
     return JsonResponse(obj) 
 
+"""
+URL to make 10 dummy jobs for testing
+"""
 def make_dummy_jobs(request):
     for i in range(10):
         make_dummy_job()
@@ -57,8 +68,12 @@ def make_dummy_jobs(request):
     obj['message'] = 'success'
     return JsonResponse(obj)   
 
+"""
+Base URL to just show hello world
+"""
 def index(request):
     return render(request, "app/index.html")
+
 
 def get_derivation():
     #out, err = run_cmd("vagrant ssh -c 'ls'")
@@ -73,6 +88,9 @@ def put_in_nix_store():
 def from_folder():
     return None
 
+"""
+Get a single random job or mark a job as complete
+"""
 @csrf_exempt
 def job(request):
 
