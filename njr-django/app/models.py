@@ -6,13 +6,14 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django_mysql.models import NullBit1BooleanField
 
 
 class Class(models.Model):
     class_id = models.AutoField(primary_key=True)
     processed_project = models.ForeignKey('ProcessedProject', models.DO_NOTHING, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
-    is_mainclass = models.TextField(blank=True, null=True)  # This field type is a guess.
+    is_mainclass = NullBit1BooleanField(blank=True, null=True)  # This field type is a guess.
     uuid = models.CharField(max_length=32, blank=True, null=True)
 
     class Meta:
@@ -22,8 +23,8 @@ class Class(models.Model):
 
 class Job(models.Model):
     job_id = models.AutoField(primary_key=True)
-    complete = models.TextField(blank=True, null=True)  # This field type is a guess.
-    error = models.TextField(blank=True, null=True)  # This field type is a guess.
+    complete = NullBit1BooleanField(blank=True, null=True)  # This field type is a guess.
+    error = NullBit1BooleanField(blank=True, null=True)  # This field type is a guess.
     visited = models.DateTimeField(blank=True, null=True)
     buildid = models.CharField(max_length=255, blank=True, null=True)
     timing = models.DecimalField(max_digits=32, decimal_places=16, blank=True, null=True)

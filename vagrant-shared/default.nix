@@ -1,12 +1,11 @@
-
 with import <nixpkgs> {};
 stdenv.mkDerivation {
   name = "example";
     phases = "installPhase";
 
     installPhase = ''
-    echo "Hello, World!!";
+    echo "Hello, World!!!!";
     mkdir $out
     touch $out/hello
     '';
-}';
+}

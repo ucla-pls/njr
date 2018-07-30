@@ -20,4 +20,7 @@ from app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('job', views.job, name='job'),
+    path('make_dummy_jobs', views.make_dummy_jobs, name='make_dummy_jobs'),
+    path('delete_dummy_jobs', views.delete_dummy_jobs, name='delete_dummy_jobs'),
 ]
