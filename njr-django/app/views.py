@@ -7,6 +7,7 @@ import uuid
 from rest_framework.test import APIClient
 import json
 import subprocess
+from job import *
 
 """
 Executes a command as if it were in the shell
@@ -72,21 +73,22 @@ def make_dummy_jobs(request):
 Base URL to just show hello world
 """
 def index(request):
+    print_hi()
     return render(request, "app/index.html")
 
 
-def get_derivation():
-    #out, err = run_cmd("vagrant ssh -c 'ls'")
-    return None
+# def get_derivation():
+#     #out, err = run_cmd("vagrant ssh -c 'ls'")
+#     return None
 
-def make_derivation():
-    return None
+# def make_derivation():
+#     return None
 
-def put_in_nix_store():
-    return None
+# def put_in_nix_store():
+#     return None
 
-def from_folder():
-    return None
+# def from_folder():
+#     return None
 
 """
 Get a single random job or mark a job as complete
