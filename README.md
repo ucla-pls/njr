@@ -1,3 +1,8 @@
+# QUESTIONS
+
+* what is the method name? what is init?
+* need json that parses
+
 # SETUP
 
 After downloading git repo...
