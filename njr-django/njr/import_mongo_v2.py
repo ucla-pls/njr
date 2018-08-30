@@ -3,6 +3,7 @@ from mongo.documents import RepoSourceDocument, RepoDocument, ProjectDocument, B
 import MySQLdb
 import json
 import uuid
+import ijson
 
 def add_raw_repo():
     print("Building Raw Repo")
@@ -171,15 +172,71 @@ def add_run():
 
     db.commit()
 
+def add_method_analysis():
+    print("Adding method analysis")
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+    cursor.execute("TRUNCATE TABLE reachable_method;")
+    cursor.execute("TRUNCATE TABLE method;")
+    cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+
+    add_method = ("INSERT INTO method "
+                    "(class_id, name, uuid) "
+                    "VALUES (%s, %s, %s)")
+
+    add_reachable_method = ("INSERT INTO reachable_method "
+                    "(method_id, tool_id, uuid) "
+                    "VALUES (%s, %s, %s)")
+
+    for prefix, the_type, value in ijson.parse(open("/Users/alex/Drive/capstone/results.json")):
+        print(prefix, the_type, value)
+        if prefix == 'item.project':
+            project = value
+        if prefix == 'item.mainclass':
+            mainclass = value
+            cursor.execute("SELECT pprj.processed_project_id FROM njr_v2.class as class "
+                "INNER JOIN njr_v2.processed_project as pprj ON class.processed_project_id = pprj.processed_project_id "
+                "INNER JOIN njr_v2.raw_project as rprj ON pprj.raw_project_id = rprj.raw_project_id "
+                "WHERE rprj.name = '" + project + "' "
+                "AND class.name = '" + mainclass + "' "
+                "ORDER BY class_id")
+            processed_project_id = cursor.fetchone()[0]
+
+        parts = prefix.split('.')
+        if len(parts) == 4:
+            class_name = parts[2].replace("/", ".")
+            cursor.execute("SELECT * FROM njr_v2.class "
+                "WHERE name = '" + class_name + "' "
+                "AND processed_project_id = " + str(processed_project_id) + " "
+                "ORDER BY class_id")
+            class_id = cursor.fetchone()[0]
+
+            method_name = parts[3].split(':')[0]
+
+            data_method = (class_id, method_name, uuid.uuid4().hex)
+            cursor.execute(add_method, data_method)
+            method_id = cursor.lastrowid
+
+            if "W" in value:
+                data_reachable_method = (method_id, 3, uuid.uuid4().hex)
+                cursor.execute(add_reachable_method, data_reachable_method)
+            
+            if "P" in value:
+                data_reachable_method = (method_id, 2, uuid.uuid4().hex)
+                cursor.execute(add_reachable_method, data_reachable_method)
+
+
+    db.commit()
+
 
 db = MySQLdb.connect("localhost","root","supersecretpassword","njr_v2")
 cursor = db.cursor()
 
 #add_raw_repo()
 #add_processed_repo()
-add_project()
-add_program()
-add_run()
+#add_project()
+#add_program()
+#add_run()
+add_method_analysis()
 
 cursor.close()
 db.close()
