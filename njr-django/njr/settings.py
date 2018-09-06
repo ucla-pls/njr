@@ -77,11 +77,11 @@ WSGI_APPLICATION = 'njr.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'user': 'root',
-            'password' : 'supersecretpassword',
-            'database' : 'njr_v2'      
-        },
+        'USER': 'root',
+        'PASSWORD' : 'mypassword',
+        'NAME' : 'njr_v2',
+        'HOST': 'db', # Or an IP Address that your DB is hosted on
+        'PORT': '3306'
     }
 }
 
