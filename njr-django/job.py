@@ -3,39 +3,39 @@
 '''
 pull a job and route to the functions below
 '''
-pull_job():
+def pull_job():
     print('stub')
 
 '''
 scrape web repo and add raw_repo object
 add job to process raw_repo
 '''
-init_repo():
+def init_repo():
     print('stub')
 
 '''
 process raw_repo into processed_repo and raw_project
 add job to process raw_project
 '''
-process_repo():
+def process_repo():
     print('stub')
 
 '''
 process raw_project into processed_project and raw_program
 add job to process raw_program
 '''
-process_project():
+def process_project():
     print('stub')
 
 '''
 process raw_program into processed_program and raw_run
 add job to process raw_run
 '''
-process_program():
+def process_program():
     print('stub')
 
 '''
 process raw_run into processed_run 
 '''
-process_run():
+def process_run():
     print('stub')

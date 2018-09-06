@@ -3,7 +3,8 @@ from mongo.documents import RepoSourceDocument, RepoDocument, ProjectDocument, B
 import MySQLdb
 import json
 import uuid
-import ijson
+import json
+import sys
 
 def add_raw_repo():
     print("Building Raw Repo")
@@ -184,47 +185,53 @@ def add_method_analysis():
                     "VALUES (%s, %s, %s)")
 
     add_reachable_method = ("INSERT INTO reachable_method "
-                    "(method_id, tool_id, uuid) "
-                    "VALUES (%s, %s, %s)")
+                    "(method_id, tool_id, mainclass_id, uuid) "
+                    "VALUES (%s, %s, %s, %s)")
 
-    for prefix, the_type, value in ijson.parse(open("/Users/alex/Drive/capstone/results.json")):
-        print(prefix, the_type, value)
-        if prefix == 'item.project':
-            project = value
-        if prefix == 'item.mainclass':
-            mainclass = value
-            cursor.execute("SELECT pprj.processed_project_id FROM njr_v2.class as class "
+    with open('/Users/alex/Drive/capstone/results.json') as f:
+        i = 0
+        p = 0
+        for line in f:
+            i += 1
+            if i % 1524 == 0:
+                p += 1
+                print(str(p) + '%')
+                db.commit()
+            obj = json.loads(line)
+            project = obj['project']
+            mainclass_escaped = obj['mainclass']
+            mainclass = mainclass_escaped.replace("/", ".")
+            cursor.execute("SELECT pprj.processed_project_id, class.class_id FROM njr_v2.class as class "
                 "INNER JOIN njr_v2.processed_project as pprj ON class.processed_project_id = pprj.processed_project_id "
                 "INNER JOIN njr_v2.raw_project as rprj ON pprj.raw_project_id = rprj.raw_project_id "
                 "WHERE rprj.name = '" + project + "' "
                 "AND class.name = '" + mainclass + "' "
                 "ORDER BY class_id")
-            processed_project_id = cursor.fetchone()[0]
+            res = cursor.fetchone()
+            processed_project_id = res[0]
+            mainclass_id = res[1]
 
-        parts = prefix.split('.')
-        if len(parts) == 4:
-            class_name = parts[2].replace("/", ".")
-            cursor.execute("SELECT * FROM njr_v2.class "
-                "WHERE name = '" + class_name + "' "
-                "AND processed_project_id = " + str(processed_project_id) + " "
-                "ORDER BY class_id")
-            class_id = cursor.fetchone()[0]
+            for class_name_escaped in obj['reachable-methods']:
+                class_name = class_name_escaped.replace("/", ".")
+                cursor.execute("SELECT * FROM njr_v2.class "
+                    "WHERE name = '" + class_name + "' "
+                    "AND processed_project_id = " + str(processed_project_id) + " "
+                    "ORDER BY class_id")
+                class_id = cursor.fetchone()[0]
+                for method_name in obj['reachable-methods'][class_name_escaped]:
+                    data_method = (class_id, method_name, uuid.uuid4().hex)
+                    cursor.execute(add_method, data_method)
+                    method_id = cursor.lastrowid
 
-            method_name = parts[3].split(':')[0]
+                    if "W" in obj['reachable-methods'][class_name_escaped][method_name]:
+                        data_reachable_method = (method_id, 3, mainclass_id, uuid.uuid4().hex)
+                        cursor.execute(add_reachable_method, data_reachable_method)
+                    
+                    if "P" in obj['reachable-methods'][class_name_escaped][method_name]:
+                        data_reachable_method = (method_id, 2, mainclass_id, uuid.uuid4().hex)
+                        cursor.execute(add_reachable_method, data_reachable_method)
 
-            data_method = (class_id, method_name, uuid.uuid4().hex)
-            cursor.execute(add_method, data_method)
-            method_id = cursor.lastrowid
-
-            if "W" in value:
-                data_reachable_method = (method_id, 3, uuid.uuid4().hex)
-                cursor.execute(add_reachable_method, data_reachable_method)
-            
-            if "P" in value:
-                data_reachable_method = (method_id, 2, uuid.uuid4().hex)
-                cursor.execute(add_reachable_method, data_reachable_method)
-
-
+    print("Done!")
     db.commit()
 
 
@@ -236,7 +243,85 @@ cursor = db.cursor()
 #add_project()
 #add_program()
 #add_run()
-add_method_analysis()
+#add_method_analysis()
 
 cursor.close()
 db.close()
+
+
+# SELECT COUNT(*) FROM (SELECT raw_program_id, COUNT(raw_program_id) FROM njr_v2.reachable_method 
+# INNER JOIN njr_v2.method ON reachable_method.method_id = method.method_id
+# INNER JOIN njr_v2.class ON method.class_id = class.class_id
+# INNER JOIN njr_v2.raw_program ON class.class_id = raw_program.mainclass_id
+# GROUP BY raw_program.raw_program_id
+# HAVING COUNT(raw_program_id) > 100 AND COUNT(raw_program_id) < 200) as tbl;
+
+# SELECT COUNT(*) FROM (SELECT raw_program_id, COUNT(raw_program_id) FROM njr_v2.reachable_method 
+# INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
+# GROUP BY raw_program.raw_program_id
+# HAVING COUNT(raw_program_id) > 100 AND COUNT(raw_program_id) < 200) as tbl;
+
+
+# SELECT uTbl.mainclass_id, iCount / uCount FROM
+
+# (
+# 	SELECT mainclass_id, COUNT(*) AS uCount FROM 
+# 	(
+# 		SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = 2
+# 		UNION 
+# 		SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = 3
+# 	) as u
+# 	GROUP BY mainclass_id
+# ) AS uTbl
+
+# INNER JOIN
+
+# (
+# 	SELECT mainclass_id, COUNT(*) AS iCount FROM 
+# 	(
+# 		SELECT method_id, mainclass_id FROM njr_v2.reachable_method as rmi1 WHERE tool_id = 2
+# 		AND EXISTS 
+# 		(
+# 			SELECT * FROM 
+# 			njr_v2.reachable_method as rmi2 
+# 			WHERE tool_id = 3
+# 			AND rmi1.method_id = rmi2.method_id
+# 			AND rmi1.mainclass_id = rmi2.mainclass_id
+# 		)
+# 	) as i
+# 	GROUP BY mainclass_id
+# ) AS iTbl
+
+# ON uTbl.mainclass_id = iTbl.mainclass_id
+
+
+
+# SELECT COUNT(*) FROM 
+# (
+# 	SELECT tbl3.mainclass_id FROM 
+# 	(
+# 		SELECT tbl1.mainclass_id, COUNT(tbl1.mainclass_id) as intersect FROM
+# 		(
+# 			SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
+# 			WHERE tool_id = 3
+# 		) as tbl1
+# 		INNER JOIN 
+# 		(
+# 			SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
+# 			WHERE tool_id = 2
+# 		) as tbl2
+# 		ON tbl1.mainclass_id = tbl2.mainclass_id AND tbl1.method_id = tbl2.method_id
+# 		GROUP BY tbl1.mainclass_id
+# 	) as tbl3
+
+# 	INNER JOIN
+
+# 	(
+# 		SELECT mainclass_id, COUNT(mainclass_id) as total FROM njr_v2.reachable_method 
+# 		WHERE tool_id = 3
+# 		GROUP BY mainclass_id
+# 	) as tbl4
+
+# 	ON tbl4.mainclass_id = tbl3.mainclass_id
+# 	WHERE intersect = total
+# ) as tbl5

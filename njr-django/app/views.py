@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 import json
 import subprocess
 from job import *
+from django.db import connection
 
 """
 Executes a command as if it were in the shell
@@ -73,8 +74,20 @@ def make_dummy_jobs(request):
 Base URL to just show hello world
 """
 def index(request):
-    print_hi()
-    return render(request, "app/index.html")
+    res = None
+    if request.method == "POST":
+        with connection.cursor() as cursor:
+            query = """
+            SELECT raw_program.name, COUNT(raw_program_id) FROM njr_v2.reachable_method 
+            INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
+            WHERE reachable_method.tool_id = """ + request.POST['analysis1'] + """
+            GROUP BY raw_program.raw_program_id, raw_program.name
+            HAVING COUNT(raw_program_id) > """ + request.POST['start'] + """ AND COUNT(raw_program_id) < """ + request.POST['end'] + """
+            LIMIT 100"""
+            cursor.execute(query)
+            res = cursor.fetchall()
+        
+    return render(request, "app/index.html", {"results": res})
 
 
 # def get_derivation():

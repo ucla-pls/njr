@@ -1,34 +1,32 @@
-<!--<table style="font-size: 10;">
+<h2>Query 1</h2>
+<form action="/" method="post">
+    {% csrf_token %}
+    <select name="analysis1">
+        <option value=3>wiretap</option>
+        <option value=2>petablox</option>
+    </select><br><br>
+    <input type="number" value="100" name="start"><br><br>
+    <input type="number" value="200" name="end"><br><br>
+    <input type="submit" value="run" ><br><br><br>
+</form>
+
+{% if results %}
+<h3>Top 100:</h3>
+<table style="font-size: 10;">
     <thead>
         <tr>
-            <th>name</th>
-            <th>analysis</th> 
-            <th>benchmark_id</th> 
-            <th>visited</th> 
-            <th>world</th> 
-            <th>upper</th> 
-            <th>path</th> 
-            <th>lower</th> 
-            <th>stats_id</th> 
-            <th>difference</th>
+            <th>program name</th>
+            <th>count</th> 
         </tr>
     </thead>
     <tbody>
-    {% for obj in example %}
+    {% for obj in results %}
         <tr>
-            <td>{{obj.name}}</td>
-            <td>{{obj.analysis}}</td> 
-            <td>{{obj.benchmark_id}}</td> 
-            <td>{{obj.visited}}</td> 
-            <td>{{obj.world}}</td> 
-            <td>{{obj.upper}}</td> 
-            <td>{{obj.path}}</td> 
-            <td>{{obj.lower}}</td> 
-            <td>{{obj.stats_id}}</td> 
-            <td>{{obj.difference}}</td>
+            <td>{{obj.0}}</td>
+            <td>{{obj.1}}</td> 
         </tr>
     {% endfor %}
     </tbody>
-</table>-->
+</table>
 
-Hello World!
+{% endif %}
