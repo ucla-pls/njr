@@ -20,6 +20,9 @@ from app import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('query2', views.query2, name='query2'),
+    path('query3', views.query3, name='query3'),
+    path('query4', views.query4, name='query4'),
     path('job', views.job, name='job'),
     path('make_dummy_jobs', views.make_dummy_jobs, name='make_dummy_jobs'),
     path('delete_dummy_jobs', views.delete_dummy_jobs, name='delete_dummy_jobs'),
