@@ -99,8 +99,13 @@ def index(request):
             cursor.execute(query)
             res = cursor.fetchall()
 
+            cursor.execute("""
+            SELECT COUNT(*) FROM ({}) a
+            """.format(q_count_reachable(**req)))
+            total = cursor.fetchone()
+
     tools = Tool.objects.all()
-    return render(request, "app/index.html", dict(results=res, tools=tools, page="q1", **req))
+    return render(request, "app/index.html", dict(results=res, tools=tools, page="q1", total=total[0], **req))
 
 """
 Display basic information about a project
@@ -186,7 +191,6 @@ def query2(request):
             res = cursor.fetchall()
 
     tools = Tool.objects.all()
-        
     return render(request, "app/query2.html", {"results": res, "tools": tools, "page" : "q2" })
 
 def query3(request):
