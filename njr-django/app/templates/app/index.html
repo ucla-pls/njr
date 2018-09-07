@@ -5,18 +5,17 @@
 <h2>Reachable Methods in Range X to Y</h2>
 <h4><small>Find programs for which a static analysis says that x to y methods are reachable.</small></h4>
 
-<form action="/" method="post" class="form-inline">
-    {% csrf_token %}
+<form action="/" method="get" class="form-inline">
     <label style="padding-left: 5px; padding-right:5px;">Tool:</label>
     <select name="tool_id" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+        <option value={{tool.tool_id}} {%if tool.tool_id == tool_id %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <label style="padding-left: 15px; padding-right:5px;">X:</label>
-    <input name="start" class="form-control" type="number" value="100" name="start">
+    <input name="start" class="form-control" type="number" value="{{start}}" name="start">
     <label style="padding-left: 15px; padding-right:5px;">Y:</label>
-    <input name="end" class="form-control" type="number" value="200" name="end">
+    <input name="end" class="form-control" type="number" value="{{end}}" name="end">
     <input style="margin-left: 15px;" class="form-control btn-primary" type="submit" value="run">
 </form>
 

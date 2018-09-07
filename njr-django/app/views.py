@@ -70,26 +70,35 @@ def make_dummy_jobs(request):
     obj['message'] = 'success'
     return JsonResponse(obj)   
 
+
+def q_count_reachable(**args):
+    return """
+    SELECT mainclass_id,method_count FROM reachable_method_count
+    WHERE tool_id = {tool_id} AND method_count >= {start!s} AND method_count < {end!s}
+    """.format(**args)
+
 """
 Base URL to just show hello world
 """
 def index(request):
     res = None
-    if request.method == "POST":
+    if request.method == "GET":
+        req = dict(
+            tool_id=int(request.GET.get('tool_id', 2)),
+            start=int(request.GET.get('start', 100)),
+            end=int(request.GET.get('end', 200))
+        )
+
         with connection.cursor() as cursor:
             query = """
-            SELECT raw_program.name, COUNT(raw_program_id) FROM njr_v2.reachable_method 
-            INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
-            WHERE reachable_method.tool_id = """ + request.POST['tool_id'] + """
-            GROUP BY raw_program.raw_program_id, raw_program.name
-            HAVING COUNT(raw_program_id) > """ + request.POST['start'] + """ AND COUNT(raw_program_id) < """ + request.POST['end'] + """
-            LIMIT 10"""
+            SELECT raw_program.name, count.method_count FROM ({} LIMIT 10) count
+            INNER JOIN raw_program ON count.mainclass_id = raw_program.mainclass_id
+            """.format(q_count_reachable(**req))
             cursor.execute(query)
             res = cursor.fetchall()
 
     tools = Tool.objects.all()
-        
-    return render(request, "app/index.html", {"results": res, "tools": tools, "page" : "q1" })
+    return render(request, "app/index.html", dict(results=res, tools=tools, page="q1", **req))
 
 def query2(request):
     res = None
