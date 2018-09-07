@@ -91,14 +91,57 @@ def index(request):
 
         with connection.cursor() as cursor:
             query = """
-            SELECT raw_program.name, count.method_count FROM ({} LIMIT 10) count
-            INNER JOIN raw_program ON count.mainclass_id = raw_program.mainclass_id
+            SELECT raw_project.name, class.name, count.method_count FROM ({} LIMIT 10) count
+            INNER JOIN class ON count.mainclass_id = class.class_id
+            INNER JOIN processed_project ON class.processed_project_id = processed_project.processed_project_id
+            INNER JOIN raw_project ON processed_project.raw_project_id = raw_project.raw_project_id
             """.format(q_count_reachable(**req))
             cursor.execute(query)
             res = cursor.fetchall()
 
     tools = Tool.objects.all()
     return render(request, "app/index.html", dict(results=res, tools=tools, page="q1", **req))
+
+"""
+Display basic information about a project
+"""
+def project(request, project_name=None):
+
+    project = {
+        "name" : project_name
+      }
+    with connection.cursor() as cursor:
+        query = """
+        SELECT name, path, processed_project.processed_project_id FROM raw_project
+        INNER JOIN processed_project
+          ON processed_project.raw_project_id = raw_project.raw_project_id
+        WHERE name = "{}"
+        """.format(project_name)
+        print (query)
+        cursor.execute(query)
+        (name, path, ppid) = cursor.fetchone()
+
+        project["path"] = path
+
+        query = """
+        SELECT DISTINCT name FROM class
+        WHERE processed_project_id = "{}"
+            AND is_mainclass IS NULL
+        ORDER BY name
+        """.format(ppid)
+        cursor.execute(query)
+        project["classes"] = cursor.fetchall()
+
+        query = """
+        SELECT DISTINCT name FROM class
+        WHERE processed_project_id = "{}"
+            AND is_mainclass is not NULL
+        ORDER BY name
+        """.format(ppid)
+        cursor.execute(query)
+        project["mainclasses"] = cursor.fetchall()
+
+    return render(request, "app/project.html", dict(page="project", project=project))
 
 def query2(request):
     res = None

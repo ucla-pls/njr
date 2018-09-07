@@ -36,15 +36,17 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Program Name</th>
+            <th>Project</th>
+            <th>Main Class</th>
             <th>Reachable Methods</th>
         </tr>
     </thead>
     <tbody>
         {% for obj in results %}
         <tr>
-            <td>{{obj.0}}</td>
+            <td ><a href="/project/{{obj.0}}"> {{obj.0}}</a></td>
             <td>{{obj.1}}</td>
+            <td>{{obj.2}}</td>
         </tr>
         {% endfor %}
     </tbody>

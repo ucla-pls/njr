@@ -1,0 +1,42 @@
+{% extends "app/layout.html" %}
+
+{% block content %}
+
+<h2>{{project.name}}</h2>
+
+<h4><small>Path:</small></h4>
+{{project.path}}
+
+<h4><small>Main Classes:</small></h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Main Class</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for clz in project.mainclasses %}
+        <tr>
+            <td>{{clz.0}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h4><small>Other Classes:</small></h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Class</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for clz in project.classes %}
+        <tr>
+            <td>{{clz.0}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
