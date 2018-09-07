@@ -1,0 +1,52 @@
+{% extends "app/layout.html" %}
+
+
+{% block content %}       
+<h2>Find One Sound, One Unsound</h2>
+<h4><small>Find programs for which one static analysis is sound but another static analysis is unsound.</small></h4>
+
+<form action="/query4" method="post" class="form-inline">
+    {% csrf_token %}
+    <label style="padding-left: 5px; padding-right:5px;">Tool 1:</label>
+    <select name="tool_id1" class="form-control">
+            {% for tool in tools %}
+            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            {% endfor %}
+    </select>
+    <label style="padding-left: 5px; padding-right:5px;">Tool 2:</label>
+    <select name="tool_id2" class="form-control">
+            {% for tool in tools %}
+            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            {% endfor %}
+    </select>
+    <label style="padding-left: 5px; padding-right:5px;">Tool 3:</label>
+    <select name="tool_id3" class="form-control">
+            {% for tool in tools %}
+            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            {% endfor %}
+    </select>
+    <input style="margin-left: 15px;" class="form-control btn-primary disabled" type="submit" value="run">
+</form>
+
+<hr>
+
+{% if results %}
+<h4><small>Showing Top 10:</small></h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Program Name</th>
+            <th>Reachable Methods</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in results %}
+        <tr>
+            <td>{{obj.0}}</td>
+            <td>{{obj.1}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

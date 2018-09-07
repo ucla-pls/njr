@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, HttpResponseNotFound
-from app.models import Job
+from app.models import Job, Tool
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 import uuid
@@ -80,14 +80,119 @@ def index(request):
             query = """
             SELECT raw_program.name, COUNT(raw_program_id) FROM njr_v2.reachable_method 
             INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
-            WHERE reachable_method.tool_id = """ + request.POST['analysis1'] + """
+            WHERE reachable_method.tool_id = """ + request.POST['tool_id'] + """
             GROUP BY raw_program.raw_program_id, raw_program.name
             HAVING COUNT(raw_program_id) > """ + request.POST['start'] + """ AND COUNT(raw_program_id) < """ + request.POST['end'] + """
-            LIMIT 100"""
+            LIMIT 10"""
             cursor.execute(query)
             res = cursor.fetchall()
+
+    tools = Tool.objects.all()
         
-    return render(request, "app/index.html", {"results": res})
+    return render(request, "app/index.html", {"results": res, "tools": tools, "page" : "q1" })
+
+def query2(request):
+    res = None
+    if request.method == "POST":
+        with connection.cursor() as cursor:
+            query = """
+            SELECT raw_program.name as name, iCount / uCount as jaccard FROM
+            (
+                SELECT mainclass_id, COUNT(*) AS uCount FROM 
+                (
+                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = """ + request.POST['tool_id1'] + """
+                    UNION 
+                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = """ + request.POST['tool_id2'] + """
+                ) as u
+                GROUP BY mainclass_id
+            ) AS uTbl
+
+            INNER JOIN
+
+            (
+                SELECT mainclass_id, COUNT(*) AS iCount FROM 
+                (
+                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method as rmi1 WHERE tool_id = """ + request.POST['tool_id1'] + """
+                    AND EXISTS 
+                    (
+                        SELECT * FROM 
+                        njr_v2.reachable_method as rmi2 
+                        WHERE tool_id = """ + request.POST['tool_id2'] + """
+                        AND rmi1.method_id = rmi2.method_id
+                        AND rmi1.mainclass_id = rmi2.mainclass_id
+                    )
+                ) as i
+                GROUP BY mainclass_id
+            ) AS iTbl
+
+            ON uTbl.mainclass_id = iTbl.mainclass_id
+
+            INNER JOIN njr_v2.raw_program ON uTbl.mainclass_id = raw_program.mainclass_id
+            WHERE iCount / uCount <= """ + request.POST['jaccard'] + """
+            LIMIT 10"""
+            cursor.execute(query)
+            res = cursor.fetchall()
+
+    tools = Tool.objects.all()
+        
+    return render(request, "app/query2.html", {"results": res, "tools": tools, "page" : "q2" })
+
+def query3(request):
+    res = None
+    if request.method == "POST":
+        with connection.cursor() as cursor:
+            query = """
+            SELECT tbl3.mainclass_id FROM 
+            (
+                SELECT tbl1.mainclass_id, COUNT(tbl1.mainclass_id) as intersect FROM
+                (
+                    SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
+                    WHERE tool_id = """ + request.POST['tool_id1'] + """
+                ) as tbl1
+                INNER JOIN 
+                (
+                    SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
+                    WHERE tool_id = """ + request.POST['tool_id2'] + """
+                ) as tbl2
+                ON tbl1.mainclass_id = tbl2.mainclass_id AND tbl1.method_id = tbl2.method_id
+                GROUP BY tbl1.mainclass_id
+            ) as tbl3
+
+            INNER JOIN
+
+            (
+                SELECT mainclass_id, COUNT(mainclass_id) as total FROM njr_v2.reachable_method 
+                WHERE tool_id = """ + request.POST['tool_id1'] + """
+                GROUP BY mainclass_id
+            ) as tbl4
+
+            ON tbl4.mainclass_id = tbl3.mainclass_id
+            WHERE intersect <> total
+            LIMIT 10"""
+            cursor.execute(query)
+            res = cursor.fetchall()
+
+    tools = Tool.objects.all()
+        
+    return render(request, "app/query3.html", {"results": res, "tools": tools, "page" : "q3" })
+
+def query4(request):
+    res = None
+    if request.method == "POST":
+        with connection.cursor() as cursor:
+            query = """
+            SELECT raw_program.name, COUNT(raw_program_id) FROM njr_v2.reachable_method 
+            INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
+            WHERE reachable_method.tool_id = """ + request.POST['tool_id'] + """
+            GROUP BY raw_program.raw_program_id, raw_program.name
+            HAVING COUNT(raw_program_id) > """ + request.POST['start'] + """ AND COUNT(raw_program_id) < """ + request.POST['end'] + """
+            LIMIT 10"""
+            cursor.execute(query)
+            res = cursor.fetchall()
+
+    tools = Tool.objects.all()
+        
+    return render(request, "app/query4.html", {"results": res, "tools": tools, "page" : "q4" })
 
 
 # def get_derivation():
