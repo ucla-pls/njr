@@ -16,8 +16,8 @@ Executes a command as if it were in the shell
 def run_cmd(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = process.communicate()
-    out = out.decode("utf-8") 
-    err = err.decode("utf-8") 
+    out = out.decode("utf-8")
+    err = err.decode("utf-8")
     return out, err
 
 """
@@ -55,7 +55,7 @@ def delete_dummy_jobs(request):
     obj = {}
     obj['data'] = None
     obj['message'] = 'success'
-    return JsonResponse(obj) 
+    return JsonResponse(obj)
 
 """
 URL to make 10 dummy jobs for testing
@@ -68,7 +68,7 @@ def make_dummy_jobs(request):
     obj = {}
     obj['data'] = None
     obj['message'] = 'success'
-    return JsonResponse(obj)   
+    return JsonResponse(obj)
 
 
 def q_count_reachable(**args):
@@ -222,7 +222,7 @@ def query4(request):
         )
         with connection.cursor() as cursor:
             query = """
-            SELECT raw_project.name, class.name FROM 
+            SELECT raw_project.name, class.name FROM
             (
                 SELECT mainclass_id, sound FROM reachable_method_sound
                 WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
@@ -246,7 +246,7 @@ def query4(request):
 
             cursor.execute("""
             SELECT COUNT(*) FROM (
-            SELECT tbl1.mainclass_id FROM 
+            SELECT tbl1.mainclass_id FROM
             (
                 SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
                 WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
@@ -264,7 +264,7 @@ def query4(request):
             total = cursor.fetchone()
 
             query = """
-            SELECT raw_project.name, class.name FROM 
+            SELECT raw_project.name, class.name FROM
             (
                 SELECT mainclass_id, sound FROM reachable_method_sound
                 WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
@@ -288,7 +288,7 @@ def query4(request):
 
             cursor.execute("""
             SELECT COUNT(*) FROM (
-            SELECT tbl1.mainclass_id FROM 
+            SELECT tbl1.mainclass_id FROM
             (
                 SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
                 WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
@@ -310,17 +310,17 @@ def query4(request):
 
 def refresh_reachable_method_count(request):
     with connection.cursor() as cursor:
-        cursor.execute("""CREATE TABLE IF NOT EXISTS reachable_method_count ( 
-        mainclass_id INT NOT NULL, 
-        tool_id INT NOT NULL, 
+        cursor.execute("""CREATE TABLE IF NOT EXISTS reachable_method_count (
+        mainclass_id INT NOT NULL,
+        tool_id INT NOT NULL,
         method_count INT NOT NULL);""")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
         cursor.execute("TRUNCATE TABLE reachable_method_count;")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
         query = """
-        INSERT INTO reachable_method_count 
-        SELECT mainclass_id,tool_id,COUNT(*) 
-        FROM reachable_method 
+        INSERT INTO reachable_method_count
+        SELECT mainclass_id,tool_id,COUNT(*)
+        FROM reachable_method
         GROUP BY mainclass_id,tool_id ORDER BY mainclass_id"""
         cursor.execute(query)
         res = cursor.fetchall()
@@ -343,10 +343,10 @@ def refresh_reachable_method_jaccard(request):
         for tool_outer in tools:
             for tool_inner in tools:
                 query = """
-                INSERT INTO reachable_method_jaccard 
+                INSERT INTO reachable_method_jaccard
                 SELECT uTbl.mainclass_id, """ + str(tool_outer.tool_id) + """, """ + str(tool_inner.tool_id) + """,  iCount / uCount FROM
                 (
-                    SELECT mainclass_id, COUNT(*) AS uCount FROM 
+                    SELECT mainclass_id, COUNT(*) AS uCount FROM
                     (
                         SELECT method_id, mainclass_id FROM reachable_method WHERE tool_id = """ + str(tool_outer.tool_id) + """
                         UNION
@@ -358,13 +358,13 @@ def refresh_reachable_method_jaccard(request):
                 INNER JOIN
 
                 (
-                    SELECT mainclass_id, COUNT(*) AS iCount FROM 
+                    SELECT mainclass_id, COUNT(*) AS iCount FROM
                     (
                         SELECT method_id, mainclass_id FROM reachable_method as rmi1 WHERE tool_id = """ + str(tool_outer.tool_id) + """
-                        AND EXISTS 
+                        AND EXISTS
                         (
-                            SELECT * FROM 
-                            reachable_method as rmi2 
+                            SELECT * FROM
+                            reachable_method as rmi2
                             WHERE tool_id = """ + str(tool_inner.tool_id) + """
                             AND rmi1.method_id = rmi2.method_id
                             AND rmi1.mainclass_id = rmi2.mainclass_id
@@ -397,16 +397,16 @@ def refresh_reachable_method_sound(request):
             for tool_inner in tools:
                 query = """
                 INSERT INTO reachable_method_sound
-                SELECT tbl3.mainclass_id, """ + str(tool_outer.tool_id) + """, """ + str(tool_inner.tool_id) + """,  intersect = total FROM 
+                SELECT tbl3.mainclass_id, """ + str(tool_outer.tool_id) + """, """ + str(tool_inner.tool_id) + """,  intersect = total FROM
                 (
                     SELECT tbl1.mainclass_id, COUNT(tbl1.mainclass_id) as intersect FROM
                     (
-                        SELECT mainclass_id, method_id, tool_id FROM reachable_method 
+                        SELECT mainclass_id, method_id, tool_id FROM reachable_method
                         WHERE tool_id = """ + str(tool_outer.tool_id) + """
                     ) as tbl1
-                    INNER JOIN 
+                    INNER JOIN
                     (
-                        SELECT mainclass_id, method_id, tool_id FROM reachable_method 
+                        SELECT mainclass_id, method_id, tool_id FROM reachable_method
                         WHERE tool_id = """ + str(tool_inner.tool_id) + """
                     ) as tbl2
                     ON tbl1.mainclass_id = tbl2.mainclass_id AND tbl1.method_id = tbl2.method_id
@@ -416,7 +416,7 @@ def refresh_reachable_method_sound(request):
                 INNER JOIN
 
                 (
-                    SELECT mainclass_id, COUNT(mainclass_id) as total FROM reachable_method 
+                    SELECT mainclass_id, COUNT(mainclass_id) as total FROM reachable_method
                     WHERE tool_id = """ + str(tool_outer.tool_id) + """
                     GROUP BY mainclass_id
                 ) as tbl4
