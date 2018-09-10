@@ -231,6 +231,10 @@ def add_method_analysis():
                         data_reachable_method = (method_id, 2, mainclass_id, uuid.uuid4().hex)
                         cursor.execute(add_reachable_method, data_reachable_method)
 
+                    if "D" in obj['reachable-methods'][class_name_escaped][method_name]:
+                        data_reachable_method = (method_id, 4, mainclass_id, uuid.uuid4().hex)
+                        cursor.execute(add_reachable_method, data_reachable_method)
+
     print("Done!")
     db.commit()
 
@@ -243,7 +247,7 @@ cursor = db.cursor()
 #add_project()
 #add_program()
 #add_run()
-#add_method_analysis()
+add_method_analysis()
 
 cursor.close()
 db.close()

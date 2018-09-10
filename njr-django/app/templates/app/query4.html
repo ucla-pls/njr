@@ -5,24 +5,23 @@
 <h2>Find One Sound, One Unsound</h2>
 <h4><small>Find programs for which one static analysis is sound but another static analysis is unsound.</small></h4>
 
-<form action="/query4" method="post" class="form-inline">
-    {% csrf_token %}
+<form action="/query4" method="get" class="form-inline">
     <label style="padding-left: 5px; padding-right:5px;">Tool 1:</label>
     <select name="tool_id1" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            <option value={{tool.tool_id}} {%if tool.tool_id == tool_id1 %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <label style="padding-left: 5px; padding-right:5px;">Tool 2:</label>
     <select name="tool_id2" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            <option value={{tool.tool_id}} {%if tool.tool_id == tool_id2 %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <label style="padding-left: 5px; padding-right:5px;">Tool 3:</label>
     <select name="tool_id3" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            <option value={{tool.tool_id}} {%if tool.tool_id == tool_id3 %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <input style="margin-left: 15px;" class="form-control btn-primary disabled" type="submit" value="run">
@@ -31,18 +30,38 @@
 <hr>
 
 {% if results %}
-<h4><small>Showing Top 10:</small></h4>
+<h4><small><b style="color: green">Sound(Tool 1, Tool2) AND !Sound(Tool 1, Tool3) </b><br>Showing Top 10 of {{total}}:</small></h4>
 <table class="table">
     <thead>
         <tr>
-            <th>Program Name</th>
-            <th>Reachable Methods</th>
+            <th>Project</th>
+            <th>Main Class</th>
         </tr>
     </thead>
     <tbody>
         {% for obj in results %}
         <tr>
-            <td>{{obj.0}}</td>
+            <td ><a href="/project/{{obj.0}}"> {{obj.0}}</a></td>
+            <td>{{obj.1}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% if results2 %}
+<h4><small><b style="color: green">!Sound(Tool 1, Tool2) AND Sound(Tool 1, Tool3) </b><br>Showing Top 10 of {{total2}}:</small></h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Project</th>
+            <th>Main Class</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for obj in results2 %}
+        <tr>
+            <td ><a href="/project/{{obj.0}}"> {{obj.0}}</a></td>
             <td>{{obj.1}}</td>
         </tr>
         {% endfor %}

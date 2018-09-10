@@ -78,7 +78,7 @@ def q_count_reachable(**args):
     """.format(**args)
 
 """
-Base URL to just show hello world
+Query 1
 """
 def index(request):
     res = None
@@ -150,105 +150,283 @@ def project(request, project_name=None):
 
 def query2(request):
     res = None
-    if request.method == "POST":
+    if request.method == "GET":
+        req = dict(
+            tool_id1=int(request.GET.get('tool_id1', 3)),
+            tool_id2=int(request.GET.get('tool_id2', 2)),
+            jaccard=float(request.GET.get('jaccard', .5))
+        )
         with connection.cursor() as cursor:
             query = """
-            SELECT raw_program.name as name, iCount / uCount as jaccard FROM
-            (
-                SELECT mainclass_id, COUNT(*) AS uCount FROM 
-                (
-                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = """ + request.POST['tool_id1'] + """
-                    UNION 
-                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method WHERE tool_id = """ + request.POST['tool_id2'] + """
-                ) as u
-                GROUP BY mainclass_id
-            ) AS uTbl
-
-            INNER JOIN
-
-            (
-                SELECT mainclass_id, COUNT(*) AS iCount FROM 
-                (
-                    SELECT method_id, mainclass_id FROM njr_v2.reachable_method as rmi1 WHERE tool_id = """ + request.POST['tool_id1'] + """
-                    AND EXISTS 
-                    (
-                        SELECT * FROM 
-                        njr_v2.reachable_method as rmi2 
-                        WHERE tool_id = """ + request.POST['tool_id2'] + """
-                        AND rmi1.method_id = rmi2.method_id
-                        AND rmi1.mainclass_id = rmi2.mainclass_id
-                    )
-                ) as i
-                GROUP BY mainclass_id
-            ) AS iTbl
-
-            ON uTbl.mainclass_id = iTbl.mainclass_id
-
-            INNER JOIN njr_v2.raw_program ON uTbl.mainclass_id = raw_program.mainclass_id
-            WHERE iCount / uCount <= """ + request.POST['jaccard'] + """
+            SELECT raw_project.name, class.name, jaccard_index FROM reachable_method_jaccard
+            INNER JOIN class ON reachable_method_jaccard.mainclass_id = class.class_id
+            INNER JOIN processed_project ON class.processed_project_id = processed_project.processed_project_id
+            INNER JOIN raw_project ON processed_project.raw_project_id = raw_project.raw_project_id
+            WHERE reachable_method_jaccard.jaccard_index <= """ + str(req["jaccard"]) + """
+            AND reachable_method_jaccard.tool_id1 = """ + str(req["tool_id1"]) + """
+            AND reachable_method_jaccard.tool_id2 = """ + str(req["tool_id2"]) + """
             LIMIT 10"""
             cursor.execute(query)
             res = cursor.fetchall()
 
+            cursor.execute("""
+            SELECT COUNT(*) FROM (
+            SELECT * FROM reachable_method_jaccard
+            WHERE reachable_method_jaccard.jaccard_index <= """ + str(req["jaccard"]) + """
+            AND reachable_method_jaccard.tool_id1 = """ + str(req["tool_id1"]) + """
+            AND reachable_method_jaccard.tool_id2 = """ + str(req["tool_id2"]) + """) a""")
+            total = cursor.fetchone()
+
     tools = Tool.objects.all()
-    return render(request, "app/query2.html", {"results": res, "tools": tools, "page" : "q2" })
+    return render(request, "app/query2.html", dict(results=res, tools=tools, page="q2", total=total[0], **req))
 
 def query3(request):
     res = None
-    if request.method == "POST":
+    if request.method == "GET":
+        req = dict(
+            tool_id1=int(request.GET.get('tool_id1', 3)),
+            tool_id2=int(request.GET.get('tool_id2', 2)),
+        )
         with connection.cursor() as cursor:
             query = """
-            SELECT tbl3.mainclass_id FROM 
-            (
-                SELECT tbl1.mainclass_id, COUNT(tbl1.mainclass_id) as intersect FROM
-                (
-                    SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
-                    WHERE tool_id = """ + request.POST['tool_id1'] + """
-                ) as tbl1
-                INNER JOIN 
-                (
-                    SELECT mainclass_id, method_id, tool_id FROM njr_v2.reachable_method 
-                    WHERE tool_id = """ + request.POST['tool_id2'] + """
-                ) as tbl2
-                ON tbl1.mainclass_id = tbl2.mainclass_id AND tbl1.method_id = tbl2.method_id
-                GROUP BY tbl1.mainclass_id
-            ) as tbl3
-
-            INNER JOIN
-
-            (
-                SELECT mainclass_id, COUNT(mainclass_id) as total FROM njr_v2.reachable_method 
-                WHERE tool_id = """ + request.POST['tool_id1'] + """
-                GROUP BY mainclass_id
-            ) as tbl4
-
-            ON tbl4.mainclass_id = tbl3.mainclass_id
-            WHERE intersect <> total
-            LIMIT 10"""
+            SELECT raw_project.name, class.name, sound FROM reachable_method_sound
+            INNER JOIN class ON reachable_method_sound.mainclass_id = class.class_id
+            INNER JOIN processed_project ON class.processed_project_id = processed_project.processed_project_id
+            INNER JOIN raw_project ON processed_project.raw_project_id = raw_project.raw_project_id
+            WHERE reachable_method_sound.sound = 0
+            AND reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+            AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """
+            LIMIT 10
+            """
             cursor.execute(query)
             res = cursor.fetchall()
 
+            cursor.execute("""
+            SELECT COUNT(*) FROM (
+            SELECT * FROM njr_v2.reachable_method_sound
+            WHERE reachable_method_sound.sound = 0
+            AND reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+            AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """) a""")
+            total = cursor.fetchone()
+
     tools = Tool.objects.all()
-        
-    return render(request, "app/query3.html", {"results": res, "tools": tools, "page" : "q3" })
+    return render(request, "app/query3.html", dict(results=res, tools=tools, page="q3", total=total[0], **req))
 
 def query4(request):
     res = None
-    if request.method == "POST":
+    if request.method == "GET":
+        req = dict(
+            tool_id1=int(request.GET.get('tool_id1', 3)),
+            tool_id2=int(request.GET.get('tool_id2', 2)),
+            tool_id3=int(request.GET.get('tool_id3', 4)),
+        )
         with connection.cursor() as cursor:
             query = """
-            SELECT raw_program.name, COUNT(raw_program_id) FROM njr_v2.reachable_method 
-            INNER JOIN njr_v2.raw_program ON reachable_method.mainclass_id = raw_program.mainclass_id
-            WHERE reachable_method.tool_id = """ + request.POST['tool_id'] + """
-            GROUP BY raw_program.raw_program_id, raw_program.name
-            HAVING COUNT(raw_program_id) > """ + request.POST['start'] + """ AND COUNT(raw_program_id) < """ + request.POST['end'] + """
+            SELECT raw_project.name, class.name FROM 
+            (
+                SELECT mainclass_id, sound FROM reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """
+            ) as tbl1
+            INNER JOIN
+            (
+                SELECT mainclass_id, sound FROM reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id3"]) + """
+            ) as tbl2
+            ON tbl1.mainclass_id = tbl2.mainclass_id
+            INNER JOIN class ON tbl1.mainclass_id = class.class_id
+            INNER JOIN processed_project ON class.processed_project_id = processed_project.processed_project_id
+            INNER JOIN raw_project ON processed_project.raw_project_id = raw_project.raw_project_id
+            WHERE tbl1.sound = 1
+            AND tbl2.sound = 0
             LIMIT 10"""
             cursor.execute(query)
             res = cursor.fetchall()
 
+            cursor.execute("""
+            SELECT COUNT(*) FROM (
+            SELECT tbl1.mainclass_id FROM 
+            (
+                SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """
+            ) as tbl1
+            INNER JOIN
+            (
+                SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id3"]) + """
+            ) as tbl2
+            ON tbl1.mainclass_id = tbl2.mainclass_id
+            WHERE tbl1.sound = 1
+            AND tbl2.sound = 0) a""")
+            total = cursor.fetchone()
+
+            query = """
+            SELECT raw_project.name, class.name FROM 
+            (
+                SELECT mainclass_id, sound FROM reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """
+            ) as tbl1
+            INNER JOIN
+            (
+                SELECT mainclass_id, sound FROM reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id3"]) + """
+            ) as tbl2
+            ON tbl1.mainclass_id = tbl2.mainclass_id
+            INNER JOIN class ON tbl1.mainclass_id = class.class_id
+            INNER JOIN processed_project ON class.processed_project_id = processed_project.processed_project_id
+            INNER JOIN raw_project ON processed_project.raw_project_id = raw_project.raw_project_id
+            WHERE tbl1.sound = 0
+            AND tbl2.sound = 1
+            LIMIT 10"""
+            cursor.execute(query)
+            res2 = cursor.fetchall()
+
+            cursor.execute("""
+            SELECT COUNT(*) FROM (
+            SELECT tbl1.mainclass_id FROM 
+            (
+                SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id2"]) + """
+            ) as tbl1
+            INNER JOIN
+            (
+                SELECT mainclass_id, sound FROM njr_v2.reachable_method_sound
+                WHERE reachable_method_sound.tool_id1 = """ + str(req["tool_id1"]) + """
+                AND reachable_method_sound.tool_id2 = """ + str(req["tool_id3"]) + """
+            ) as tbl2
+            ON tbl1.mainclass_id = tbl2.mainclass_id
+            WHERE tbl1.sound = 0
+            AND tbl2.sound = 1) a""")
+            total2 = cursor.fetchone()
+
     tools = Tool.objects.all()
-        
-    return render(request, "app/query4.html", {"results": res, "tools": tools, "page" : "q4" })
+    return render(request, "app/query4.html", dict(results=res, results2=res2, tools=tools, page="q4", total=total[0], total2=total2[0], **req))
+
+def refresh_reachable_method_count(request):
+    with connection.cursor() as cursor:
+        cursor.execute("""CREATE TABLE IF NOT EXISTS reachable_method_count ( 
+        mainclass_id INT NOT NULL, 
+        tool_id INT NOT NULL, 
+        method_count INT NOT NULL);""")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+        cursor.execute("TRUNCATE TABLE reachable_method_count;")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+        query = """
+        INSERT INTO reachable_method_count 
+        SELECT mainclass_id,tool_id,COUNT(*) 
+        FROM reachable_method 
+        GROUP BY mainclass_id,tool_id ORDER BY mainclass_id"""
+        cursor.execute(query)
+        res = cursor.fetchall()
+    obj = {}
+    obj['message'] = 'success'
+    return JsonResponse(obj)
+
+def refresh_reachable_method_jaccard(request):
+    tools = Tool.objects.all()
+    with connection.cursor() as cursor:
+        cursor.execute("""CREATE TABLE IF NOT EXISTS reachable_method_jaccard (
+        mainclass_id` int(11) NOT NULL,
+        tool_id1 int(11) NOT NULL,
+        tool_id2 int(11) NOT NULL,
+        jaccard_index decimal(18,17) NOT NULL
+        );""")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+        cursor.execute("TRUNCATE TABLE reachable_method_jaccard;")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+        for tool_outer in tools:
+            for tool_inner in tools:
+                query = """
+                INSERT INTO reachable_method_jaccard 
+                SELECT uTbl.mainclass_id, """ + str(tool_outer.tool_id) + """, """ + str(tool_inner.tool_id) + """,  iCount / uCount FROM
+                (
+                    SELECT mainclass_id, COUNT(*) AS uCount FROM 
+                    (
+                        SELECT method_id, mainclass_id FROM reachable_method WHERE tool_id = """ + str(tool_outer.tool_id) + """
+                        UNION
+                        SELECT method_id, mainclass_id FROM reachable_method WHERE tool_id = """ + str(tool_inner.tool_id) + """
+                    ) as u
+                    GROUP BY mainclass_id
+                ) AS uTbl
+
+                INNER JOIN
+
+                (
+                    SELECT mainclass_id, COUNT(*) AS iCount FROM 
+                    (
+                        SELECT method_id, mainclass_id FROM reachable_method as rmi1 WHERE tool_id = """ + str(tool_outer.tool_id) + """
+                        AND EXISTS 
+                        (
+                            SELECT * FROM 
+                            reachable_method as rmi2 
+                            WHERE tool_id = """ + str(tool_inner.tool_id) + """
+                            AND rmi1.method_id = rmi2.method_id
+                            AND rmi1.mainclass_id = rmi2.mainclass_id
+                        )
+                    ) as i
+                    GROUP BY mainclass_id
+                ) AS iTbl
+
+                ON uTbl.mainclass_id = iTbl.mainclass_id"""
+                cursor.execute(query)
+                res = cursor.fetchall()
+    obj = {}
+    obj['message'] = 'success'
+    return JsonResponse(obj)
+
+
+def refresh_reachable_method_sound(request):
+    tools = Tool.objects.all()
+    with connection.cursor() as cursor:
+        cursor.execute("""CREATE TABLE reachable_method_sound (
+        mainclass_id int(11) NOT NULL,
+        tool_id1 int(11) NOT NULL,
+        tool_id2 int(11) NOT NULL,
+        sound bit(1) NOT NULL
+        );""")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
+        cursor.execute("TRUNCATE TABLE reachable_method_sound;")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
+        for tool_outer in tools:
+            for tool_inner in tools:
+                query = """
+                INSERT INTO reachable_method_sound
+                SELECT tbl3.mainclass_id, """ + str(tool_outer.tool_id) + """, """ + str(tool_inner.tool_id) + """,  intersect = total FROM 
+                (
+                    SELECT tbl1.mainclass_id, COUNT(tbl1.mainclass_id) as intersect FROM
+                    (
+                        SELECT mainclass_id, method_id, tool_id FROM reachable_method 
+                        WHERE tool_id = """ + str(tool_outer.tool_id) + """
+                    ) as tbl1
+                    INNER JOIN 
+                    (
+                        SELECT mainclass_id, method_id, tool_id FROM reachable_method 
+                        WHERE tool_id = """ + str(tool_inner.tool_id) + """
+                    ) as tbl2
+                    ON tbl1.mainclass_id = tbl2.mainclass_id AND tbl1.method_id = tbl2.method_id
+                    GROUP BY tbl1.mainclass_id
+                ) as tbl3
+
+                INNER JOIN
+
+                (
+                    SELECT mainclass_id, COUNT(mainclass_id) as total FROM reachable_method 
+                    WHERE tool_id = """ + str(tool_outer.tool_id) + """
+                    GROUP BY mainclass_id
+                ) as tbl4
+
+                ON tbl4.mainclass_id = tbl3.mainclass_id"""
+                cursor.execute(query)
+                res = cursor.fetchall()
+    obj = {}
+    obj['message'] = 'success'
+    return JsonResponse(obj)
 
 
 # def get_derivation():

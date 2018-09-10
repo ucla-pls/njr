@@ -5,41 +5,42 @@
 <h2>Find Two Significantly Different Analyses</h2>
 <h4><small>Find programs for which two static analyses disagree significantly. We interpret this to mean that the Jaccard index is less than 0.5.</small></h4>
 
-<form action="/query2" method="post" class="form-inline">
-    {% csrf_token %}
+<form action="/query2" method="get" class="form-inline">
     <label style="padding-left: 5px; padding-right:5px;">Tool 1:</label>
     <select name="tool_id1" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            <option value={{tool.tool_id}} {%if tool.tool_id == tool_id1 %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <label style="padding-left: 15px; padding-right:5px;">Tool 2:</label>
     <select name="tool_id2" class="form-control">
             {% for tool in tools %}
-            <option value={{tool.tool_id}}>{{tool.name}}</option>
+            <option value={{tool.tool_id}} {%if tool.tool_id == tool_id2 %} selected {% endif %} >{{tool.name}}</option>
             {% endfor %}
     </select>
     <label style="padding-left: 15px; padding-right:5px;">Jaccard:</label>
-    <input name="jaccard" class="form-control" type="number" step="0.1" value="0.5" name="start">
+    <input name="jaccard" class="form-control" type="number" step="0.1" value="{{jaccard}}" name="start">
     <input style="margin-left: 15px;" class="form-control btn-primary" type="submit" value="run">
 </form>
 
 <hr>
 
 {% if results %}
-<h4><small>Showing Top 10:</small></h4>
+<h4><small>Showing Top 10 of {{total}}:</small></h4>
 <table class="table">
     <thead>
         <tr>
-            <th>Program Name</th>
+            <th>Project</th>
+            <th>Main Class</th>
             <th>Jaccard Index</th>
         </tr>
     </thead>
     <tbody>
         {% for obj in results %}
         <tr>
-            <td>{{obj.0}}</td>
+            <td ><a href="/project/{{obj.0}}"> {{obj.0}}</a></td>
             <td>{{obj.1}}</td>
+            <td>{{obj.2}}</td>
         </tr>
         {% endfor %}
     </tbody>
