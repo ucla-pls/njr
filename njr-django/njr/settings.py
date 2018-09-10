@@ -74,27 +74,27 @@ WSGI_APPLICATION = 'njr.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'USER': 'root',
-#         'PASSWORD' : 'mypassword',
-#         'NAME' : 'njr_v2',
-#         'HOST': 'db', # Or an IP Address that your DB is hosted on
-#         'PORT': '3306'
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'user': 'root',
-            'password' : 'supersecretpassword',
-            'database' : 'njr_v2'      
-        },
+        'USER': 'root',
+        'PASSWORD' : 'mypassword',
+        'NAME' : 'njr_v2',
+        'HOST': 'db', # Or an IP Address that your DB is hosted on
+        'PORT': '3306'
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'OPTIONS': {
+#             'user': 'root',
+#             'password' : 'supersecretpassword',
+#             'database' : 'njr_v2'      
+#         },
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
